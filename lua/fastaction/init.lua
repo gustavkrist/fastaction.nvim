@@ -78,7 +78,7 @@ function M.select(items, opts, on_choice)
     if #items > conf.fallback_threshold then return m.select(items, opts, on_choice) end
     opts.format_item = opts.format_item or tostring
     local used_keys = vim.tbl_extend('force', {}, conf.dismiss_keys)
-    ---@type {name: string, key: string, item: any, order: integer}[]}
+    ---@type {name: string, key: string, item: any, order: integer, index: integer}[]}
     local options = {}
 
     ---@type string[]
@@ -86,7 +86,7 @@ function M.select(items, opts, on_choice)
 
     local valid_keys = keys.generate_keys(#items, m.keys, conf.dismiss_keys)
     for i, item in ipairs(items) do
-        local option = { item = item, order = 0, name = opts.format_item(item) }
+        local option = { item = item, order = 0, name = opts.format_item(item), index = i }
         local match = assert(
             keys.get_action_config {
                 title = option.name,
@@ -111,10 +111,10 @@ function M.select(items, opts, on_choice)
     ---@param buffer integer
     local function setup_keymaps(buffer)
         local kopts = { buffer = buffer, noremap = true, silent = true, nowait = true }
-        for i, option in ipairs(options) do
+        for _, option in ipairs(options) do
             vim.keymap.set('n', option.key, function()
                 window.popup_close()
-                on_choice(option.item, i)
+                on_choice(option.item, option.index)
             end, kopts)
         end
     end
